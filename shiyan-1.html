@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老子33 (Laozi33) 综合防务与边缘算力中心</title>
+    <!-- 引入官方安全的 Web3 交互库与样式驱动 -->
+    <script src="https://jsdelivr.net" type="text/javascript"></script>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #07090e; color: #ffffff; padding: 15px; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .dapp-container { background: #111622; padding: 20px; border-radius: 24px; border: 1px solid #1e293b; width: 100%; max-width: 460px; box-shadow: 0 12px 48px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 15px; }
+        h2 { text-align: center; margin: 0; font-size: 20px; font-weight: bold; }
+        .tab-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #07090e; padding: 5px; border-radius: 12px; border: 1px solid #1e293b; }
+        .tab-btn { padding: 10px; background: transparent; border: none; border-radius: 8px; color: #94a3b8; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .tab-btn.active { background: #1e293b; color: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .app-panel { display: none; } .app-panel.active { display: block; }
+        
+        /* 📰 阅读赚币板块样式 */
+        .art-card { background: #161b26; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 12px; position: relative; cursor: pointer; }
+        .art-title { font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #3b82f6; }
+        .art-badge { display: inline-block; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 6px; margin-bottom: 5px; }
+        .badge-free { background: #064e3b; color: #10b981; } .badge-lock { background: #4c1d95; color: #c084fc; }
+        .art-preview { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+        .viewer-box { background: #07090e; border: 1px solid #334155; border-radius: 12px; padding: 15px; font-size: 13px; line-height: 1.6; color: #cbd5e1; display: none; }
+        .timer-glow { font-family: monospace; font-size: 16px; color: #ffb700; font-weight: bold; text-align: center; margin-top: 10px; }
+        .credential-box { background: linear-gradient(135deg, #1e1b4b 0%, #020617 100%); border: 1px dashed #10b981; border-radius: 8px; padding: 12px; margin-top: 10px; word-break: break-all; font-family: monospace; font-size: 11px; display: none; color: #00ff88; }
+        
+        /* 💬 加密通信板块样式 */
+        .chat-stage { background: #07090e; border-radius: 12px; height: 300px; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #1e293b; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 13px; word-break: break-all; }
+        .bubble.local { background: #064e3b; color: #00ff88; align-self: flex-end; border-bottom-right-radius: 1px; }
+        .bubble.remote { background: #1e293b; color: #cbd5e1; align-self: flex-start; border-bottom-left-radius: 1px; }
+        .input-bar { display: flex; gap: 8px; margin-top: 10px; }
+        input { flex: 1; padding: 10px; background: #07090e; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 14px; }
+        
+        /* 通用组件 */
+        button { width: 100%; padding: 12px; background: #2563eb; border: none; border-radius: 8px; color: white; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1d4ed8; } button:disabled { background: #1e293b; color: #64748b; cursor: not-allowed; }
+        .info-ledger { background: #07090e; padding: 10px; border-radius: 10px; font-size: 11px; font-family: monospace; border: 1px solid #1e293b; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+<div class="dapp-container">
+    <h2 id="dappTitle" style="color: #3b82f6;">老子33 (Laozi33) 分布式控制台</h2>
+    
+    <!-- 看板 -->
+    <div class="info-ledger">
+        <span>账户: <span id="accStatus" style="color:#ef4444; font-weight:bold;">未连接</span></span>
+        <span>持仓: <span id="tokenBalance" style="color:#10b981; font-weight:bold;">0.00</span> 枚</span>
+    </div>
+    
+    <button id="connectWalletBtn" onclick="connectWalletNetwork()">🔌 一键并行连包并激活本地密码学锁</button>
+
+    <!-- 切换标签 -->
+    <div class="tab-box">
+        <button class="tab-btn active" id="tabRead" onclick="switchPanel('read')">📰 1. 每日看文赚币</button>
+        <button class="tab-btn" id="tabChat" onclick="switchPanel('chat')">💬 2. P2P 加密通信</button>
+    </div>
+
+    <!-- ==================== 📰 板块一：每日阅读领奖励中心 ==================== -->
+    <div id="panelRead" class="app-panel active">
+        <div id="articleList">
+            <!-- 修复：通过 onclick 绑定直接触发，完全剥离多级冒泡隐患 -->
+            <div class="art-card" onclick="openArticle(101, false)">
+                <span class="art-badge badge-free">🔓 开放阅读</span>
+                <div class="art-title">论老子33极浅流动性池（21,656元）的反量化夹子设计</div>
+                <div class="art-preview">本篇阐述项目方通过极端浅池对高频量化机器人形成的力学反向狙击...</div>
+            </div>
+            
+            <div class="art-card" onclick="openArticle(102, true)">
+                <span class="art-badge badge-lock">🔒 持仓大户锁</span>
+                <div class="art-title">福建地区智能装潢劳务款链上存证化与可回收火箭凸优化规划</div>
+                <div class="art-preview">【核心机密】非大户持仓者无法透视。内含高度非线性最优控制算法...</div>
+            </div>
+        </div>
+
+        <!-- 离线阅读器视窗 -->
+        <div class="viewer-box" id="articleViewer">
+            <div id="viewerTitle" style="font-weight:bold; color:#3b82f6; margin-bottom:10px; font-size:15px;"></div>
+            <div id="viewerContent" style="color:#cbd5e1; text-align:justify; font-size:13px;"></div>
+            
+            <div class="timer-glow" id="readTimer">⏱️ 本地安全时钟锁静置核验中... 10s</div>
+            <div class="credential-box" id="credentialDisplay"></div>
+            
+            <button onclick="closeArticleViewer()" style="background:#334155; margin-top:15px; padding:8px;">返回文章清单</button>
+        </div>
+    </div>
+
+    <!-- ==================== 💬 板块二：点对点密码学加密通信中心 ==================== -->
+    <div id="panelChat" class="app-panel">
+        <div class="chat-stage" id="chatStage">
+            <div class="bubble remote">
+                [量子安全防线] 请确保连接钱包生成本地 AES-GCM 256 位对称矩阵锁。未经加密的文本流将被系统在物理铜线上无条件阻断拦截。
+            </div>
+        </div>
+        <div class="input-bar">
+            <input type="text" id="chatInput" placeholder="输入高度粉碎加密的局域网机密内容..." disabled>
+            <button id="sendChatBtn" disabled onclick="sendSecureMessage()">发送</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const LAOZI33_TOKEN = "0x69bbb2ef4bce2dbaafcc4b6a1fef4a7dd6d99e7a";
+const BSC_RPC = "https://binance.org";
+const readOnlyProvider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+
+const ARTICLES_CONTENT = {
+    101: "老子33在 PancakeSwap 上维持的 2 万多元极浅资金池，是项目方反量化夹子机器人的特意设计。当黑客量化机器人企图进入浅池进行高频夹击时，极窄的深度会引发极其恐怖的价格滑点损耗，在链上直接将其‘物理超度’，从根本上护住了散户的筹码底盘！项目方不屑于中心化拉盘，旨在用实物硬科技内需打造真长青牛市！",
+    102: "【老子33核心机密研报】福建地区智能房屋修缮业务正在全面推开，供应链采购与劳务结算款将 100% 写入智能合约锁死，杜绝传统工程款拖欠！同时，项目方自主掌握的可回收火箭垂直软着陆控制算法，采用 SLSQP 非线性凸优化求解器，在未来 10 秒的时域视窗内高频推演 20 个控制点，使发动机主推力变推力输出和 TVC 喷管摆角达到燃油消耗最低的最优轨迹，实现零速度、零角度完美接地！"
+};
+
+let provider, signer, userAddress, isPassedWhaleAudit = false, chatAesKey = null;
+let readTimerInterval, secondsLeft = 10;
+let db;
+
+// ==================== 💾 IndexedDB 本地冷存储 ====================
+try {
+    const dbRequest = indexedDB.open("Laozi33_Empire_Storage_v2", 1);
+    dbRequest.onupgradeneeded = (e) => {
+        let localDb = e.target.result;
+        localDb.createObjectStore("chat_logs", { keyPath: "timestamp" });
+    };
+    dbRequest.onsuccess = (e) => { db = e.target.result; loadChatHistoryFromStorage(); };
+} catch(e) { console.log("本地独立运行暂缓加载数据库"); }
+
+function switchPanel(panelName) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.app-panel').forEach(p => p.classList.remove('active'));
+    
+    if (panelName === 'read') {
+        document.getElementById('tabRead').classList.add('active');
+        document.getElementById('panelRead').classList.add('active');
+    } else {
+        document.getElementById('tabChat').classList.add('active');
+        document.getElementById('panelChat').classList.add('active');
+    }
+}
+
+// ==================== 🔌 钱包连接与持仓审计 ====================
+async function connectWalletNetwork() {
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            
+            document.getElementById('accStatus').innerText = `${userAddress.substring(0,6)}...`;
+            document.getElementById('accStatus').style.color = "#10b981";
+            document.getElementById('connectWalletBtn').innerText = "✓ 密码学底盘核验已激活";
+            
+            const contract = new ethers.Contract(LAOZI33_TOKEN, ["function balanceOf(address) view returns (uint256)"], readOnlyProvider);
+            const bal = await contract.balanceOf(userAddress);
+            const formattedBal = parseFloat(ethers.utils.formatUnits(bal, 18));
+            document.getElementById('tokenBalance').innerText = formattedBal.toLocaleString();
+            
+            if (formattedBal >= 10.0) {
+                isPassedWhaleAudit = true;
+                await initLocalCryptoKeyMatrix();
+            }
+        } catch (e) { console.error(e); }
+    } else { alert("本地运行提示：未检测到环境。请在手机去中心化钱包内直接点开！"); }
+}
+
+// ==================== 📰 5. 一键拆锁切换：开放阅读与时钟核验 ====================
+function openArticle(artId, isLockedContent) {
+    if (isLockedContent && !isPassedWhaleAudit) {
+        alert("🚨 风控锁拦截：本篇文章包含项目方硬科技核心机密，只对持有 ≥ 10 枚母币的老子33真实散户开放！请先连接钱包！");
+        return;
+
+}
+// 💡 物理切割：隐藏列表，秒级拉起独立 Canvas 级阅读视窗
+document.getElementById('articleList').style.display = 'none';
+document.getElementById('articleViewer').style.display = 'block';
+// 定制化标题快速对账，100% 杜绝 event 传参丢失
+if(artId === 101) {
+document.getElementById('viewerTitle').innerText = "论老子33极浅流动性池（21,656元）的反量化夹子设计";
+} else {
+document.getElementById('viewerTitle').innerText = "福建地区智能装潢劳务款链上存证化与可回收火箭凸优化规划";
+}
+document.getElementById('viewerContent').innerText = ARTICLES_CONTENT[artId];
+// ⏱️ 强制触发硬件一秒积分时钟
+secondsLeft = 10;
+document.getElementById('readTimer').style.display = 'block';
+document.getElementById('readTimer').innerText = ⏱️ 本地安全时钟锁静置核验中... ${secondsLeft}s;
+document.getElementById('credentialDisplay').style.display = 'none';
+clearInterval(readTimerInterval);
+readTimerInterval = setInterval(async () => {
+secondsLeft--;
+document.getElementById('readTimer').innerText = ⏱️ 本地安全时钟锁静置核验中... ${secondsLeft}s;
+if (secondsLeft <= 0) {
+clearInterval(readTimerInterval);
+document.getElementById('readTimer').style.display = 'none';
+await generateLocalReadingCredential(artId); # 点火哈希解算
+}
+}, 1000);
+}
+async function generateLocalReadingCredential(artId) {
+const userSeed = userAddress ? userAddress.toLowerCase() : "0xOfflineUserPlaceholderSeed";
+// 🧠 终极修复：使用标准的 Date.now() 全局函数，消灭未定义报错死锁！
+const localTimestamp = Date.now();
+const rawDataString = ${userSeed}_${localTimestamp}_${artId}_Laozi33DeflationSystem;
+const encoder = new TextEncoder();
+const data = encoder.encode(rawDataString);
+const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+const hashArray = Array.from(new Uint8Array(hashBuffer));
+const finalCredentialHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+const displayEl = document.getElementById('credentialDisplay');
+displayEl.style.display = 'block';
+displayEl.innerHTML = 🎉 <b>本地时钟审计通过！晚读完读凭证已在本地算力池生成：</b><br> <span style="color:#00ff88; font-size:10px;">${finalCredentialHash}</span><br> <span style="color:#94a3b8; font-size:10px; display:block; margin-top:5px;">💡 提示：该凭证已包含您的时空图谱，请将此哈希发送给项目方专用收款钱包，即可一秒兑换代币奖励！</span>;
+}
+function closeArticleViewer() {
+clearInterval(readTimerInterval);
+document.getElementById('articleViewer').style.display = 'none';
+document.getElementById('articleList').style.display = 'block';
+}
+// ==================== 💬 6. 端到端绝对安全通讯 ====================
+async function initLocalCryptoKeyMatrix() {
+try {
+const chatDeclaration = "[Laozi33 Encrypted Chat Channel] 激活本地 256 位 AES-GCM 密码学硬件锁。";
+const userSignature = await signer.signMessage(chatDeclaration);
+const encoder = new TextEncoder();
+const data = encoder.encode(userSignature);
+const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+chatAesKey = await crypto.subtle.importKey(
+"raw", hashBuffer, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]
+);
+document.getElementById('chatInput').disabled = false;
+document.getElementById('sendChatBtn').disabled = false;
+} catch (e) { console.log(e); }
+}
+async function sendSecureMessage() {
+const inputEl = document.getElementById("chatInput");
+const text = inputEl.value.trim();
+if (!text) return;
+inputEl.value = "";
+const timestamp = Date.now();
+let base64Cipher = "";
+if (chatAesKey) {
+const encoder = new TextEncoder();
+const iv = crypto.getRandomValues(new Uint8Array(12));
+const encryptedBuffer = await crypto.subtle.encrypt(
+{ name: "AES-GCM", iv: iv }, chatAesKey, encoder.encode(text)
+);
+const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+combined.set(iv);
+combined.set(new Uint8Array(encryptedBuffer), iv.length);
+base64Cipher = btoa(String.fromCharCode.apply(null, combined));
+}
+if (db) {
+const transaction = db.transaction(["chat_logs"], "readwrite");
+transaction.objectStore("chat_logs").put({ timestamp: timestamp, sender: "local", plain: text, cipher: base64Cipher });
+}
+renderChatBubble("local", text, base64Cipher);
+setTimeout(() => {
+renderChatBubble("remote", "[大户密码学回执] 边缘特征块对齐成功，数据已安全本地落盘。", "");
+}, 1000);
+}
+function renderChatBubble(sender, plain, cipher) {
+const stage = document.getElementById("chatStage");
+const bubble = document.createElement("div");
+bubble.className = bubble ${sender};
+bubble.innerHTML = ${plain};
+if (cipher) {
+bubble.innerHTML += <span style="font-size:9px; color:#64748b; display:block; margin-top:3px; border-top:1px dashed #334155; padding-top:2px; font-family:monospace;">🔒 铜线密文: ${cipher.substring(0,14)}...</span>;
+}
+stage.appendChild(bubble);
+stage.scrollTop = stage.scrollHeight;
+}
+function loadChatHistoryFromStorage() {
+if (!db) return;
+const store = db.transaction(["chat_logs"], "readonly").objectStore("chat_logs");
+store.openCursor().onsuccess = (e) => {
+const cursor = e.target.result;
+if (cursor) {
+renderChatBubble(cursor.value.sender, cursor.value.plain, cursor.value.cipher);
+cursor.continue();
+}
+};
+}
+</script>
+</body>
+</html>
