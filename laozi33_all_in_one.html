@@ -62,7 +62,7 @@
     <div id="panelRead" class="app-panel active">
         <div id="articleList">
             <!-- 开放式通识文章 -->
-            <div class="art-card" onclick="openArticle(101, false)">
+            <div class="art-card" onclick="event.stopPropagation(); openArticle(101, false)">
                 <span class="art-badge badge-free">🔓 开放阅读</span>
                 <div class="art-title">论老子33极浅流动性池（21,656元）的反量化夹子设计</div>
                 <div class="art-preview">本篇阐述项目方通过极端浅池对高频量化机器人形成的力学反向狙击...</div>
